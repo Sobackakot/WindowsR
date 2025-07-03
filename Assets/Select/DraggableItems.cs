@@ -44,12 +44,11 @@ namespace Drag.Item
         {
             SetCurrentDraggableItem();
             ResetSelectedItems();
-            currentDraggableItem.OnPointerClick(eventData);
-            
+            currentDraggableItem.OnPointerClick(eventData); 
         }
 
         public void OnBeginDrag(PointerEventData eventData)
-        {
+        { 
             SetCurrentDraggableItem();
             BeginDragSingleItem(eventData);
             if (selectedItems.Count > 1 && selectedItems.Contains(currentDraggableItem))

@@ -13,6 +13,7 @@ namespace Drag.Item
         private Canvas canvas;
         private Outline line;
         public bool hasHitPointCursor { get; private set; } 
+        public bool isDraggableItem { get; private set; } 
         public bool inSelectionFrame { get; private set; }
         private void Awake()
         {
@@ -33,6 +34,8 @@ namespace Drag.Item
         }
         public void OnBeginDrag(PointerEventData eventData)
         {
+            Debug.Log("BeginDrag " + name);
+            isDraggableItem = true;
             hasHitPointCursor = true;
             canvasGroup.blocksRaycasts = false;
             canvasGroup.alpha = 0.5f;
@@ -45,10 +48,13 @@ namespace Drag.Item
         {
             rectTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
             hasHitPointCursor = true;
+            isDraggableItem = true;
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            Debug.Log("EndDrag " + name);
+            isDraggableItem = false;
             hasHitPointCursor = false;
             canvasGroup.blocksRaycasts = true;
             canvasGroup.alpha = 1f;
