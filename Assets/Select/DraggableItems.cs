@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 
 namespace Drag.Item
 {
-    public class DraggableItems : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class DraggableItems : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
     {
         private SelectionFrame selection;
         public List<DraggableItem> selectedItems = new();
@@ -21,14 +21,12 @@ namespace Drag.Item
             selection = GetComponent<SelectionFrame>();
         }
         private void OnEnable()
-        {
-            selection.OnGetHasHitPointerCursorOnUI += GetHasHitPointerCursorOnUI;
+        { 
             selection.OnAddSelectedItem += AddSelectedItem;
             selection.OnResetSelectedItems += ResetSelectedItems;
         }
         private void OnDisable()
-        {
-            selection.OnGetHasHitPointerCursorOnUI -= GetHasHitPointerCursorOnUI;
+        { 
             selection.OnAddSelectedItem -= AddSelectedItem;
             selection.OnResetSelectedItems -= ResetSelectedItems;
         }
@@ -38,7 +36,16 @@ namespace Drag.Item
         }
         private void ResetSelectedItems()
         {
+            foreach (var item in selectedItems)
+                item.ResetSelectionFrame();
             selectedItems.Clear();
+        }
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            SetCurrentDraggableItem();
+            ResetSelectedItems();
+            currentDraggableItem.OnPointerClick(eventData);
+            
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -108,8 +115,9 @@ namespace Drag.Item
         {
             if (selectedItems.Count <= 1 || !selectedItems.Contains(currentDraggableItem))
             {
-                selectedItems.Clear();
+                ResetSelectedItems();
                 currentDraggableItem?.OnBeginDrag(eventData);
+                currentDraggableItem?.ResetSelectionFrame(); 
             }
         }
 
@@ -118,14 +126,19 @@ namespace Drag.Item
             currentDraggableItem = null;
             foreach (var item in draggableItems)
             {
-                if (item.isPointerEnter)
+                if (item.hasHitPointCursor)
                 {
                     currentDraggableItem = item;
                     break;
                 }
             }
         }
-         
+        private bool GetHasHitPointerCursorOnUI()
+        {
+            foreach (var item in draggableItems)
+                if (item.hasHitPointCursor) return true;
+            return false;
+        }
         private Vector2 GetPointLocalPosition(PointerEventData eventData, DraggableItem item)
         {
             Vector2 newPos = eventData.position + dragOffsets[item];
@@ -134,11 +147,7 @@ namespace Drag.Item
                 canvas.transform as RectTransform, newPos, eventData.pressEventCamera, out localPoint);
             return localPoint;
         }
-        private bool GetHasHitPointerCursorOnUI()
-        {
-            foreach(var item in draggableItems)
-                if (item.hasHitPointCursor) return true;
-            return false;
-        }
+       
+      
     }
 }

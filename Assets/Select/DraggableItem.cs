@@ -5,15 +5,15 @@ using UnityEngine.UI;
 
 namespace Drag.Item
 {
-    public class DraggableItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
-    { 
-        public bool hasHitPointCursor { get; private set; }
+    public class DraggableItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    {  
         public Transform m_Transform { get; set; }
         public RectTransform rectTransform { get; set; }
         private CanvasGroup canvasGroup;
         private Canvas canvas;
         private Outline line;
-        public bool isPointerEnter { get; private set; }
+        public bool hasHitPointCursor { get; private set; } 
+        public bool inSelectionFrame { get; private set; }
         private void Awake()
         {
             m_Transform = GetComponent<Transform>();
@@ -54,32 +54,49 @@ namespace Drag.Item
             canvasGroup.alpha = 1f;
             rectTransform.SetParent(m_Transform);
         }
-        public void PickEnterItem()
+        public void SetInSelectionFrame()
         {
-            line.enabled = true;
-            isPointerEnter = true;
+            inSelectionFrame = true;
+            LineEnable();
         }
-        public void PickEndItem()
+        public void ResetSelectionFrame()
         {
-            line.enabled = false;
-            isPointerEnter = false;
+            inSelectionFrame = false;
+            LineDisable();
         }
-
+        public void LineEnable()
+        {
+            line.enabled = true; 
+        }
+        public void LineDisable()
+        {
+            if (!inSelectionFrame)
+                line.enabled = false; 
+        }
+        public void PointerEnter()
+        { 
+            hasHitPointCursor = true;
+        }
+        public void PointerExit()
+        { 
+            hasHitPointCursor = false;
+        }
         public void OnPointerEnter(PointerEventData eventData)
         { 
-            PickEnterItem();
-            hasHitPointCursor = true;
+            LineEnable();
+            PointerEnter();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         { 
-            PickEndItem();
-            hasHitPointCursor = false;
+            LineDisable();
+            PointerExit();
         }
 
         public void OnPointerClick(PointerEventData eventData)
-        { 
-            hasHitPointCursor = true; 
+        {
+            PointerEnter();
+            LineEnable();
         }
     }
 }

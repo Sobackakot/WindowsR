@@ -7,24 +7,22 @@ using UnityEngine.EventSystems;
 namespace Drag.Item
 {
     public class SelectionFrame : MonoBehaviour
-    {
-
-        public event Func<bool> OnGetHasHitPointerCursorOnUI;
+    { 
         public event Action<DraggableItem> OnAddSelectedItem; 
         public event Action OnResetSelectedItems;
 
 
         SelectableRegistry registry;
         public GUISkin GUISkin; // GUI skin for the selection box.
-        private Rect screenSpaceRect; // Rectangle representing the selection box.
-        private bool canDrawFrame; // Flag to indicate if the selection box should be drawn.
-        private bool canSelect;  
+        private Rect screenSpaceRect; // Rectangle representing the selection box. 
 
         private Vector2 startPoint; // Starting point of the selection box.
         private Vector2 endPoint; // Ending point of the selection box.
         private int sortingLayer = 99; // Sorting layer for the GUI.
         private float minDragDistance = 10f; // Minimum distance to start drawing the frame. 
-         
+        public bool onSelectionStay { get; private set; }
+
+
         private void OnEnable()
         {
             OnResetSelectedItems?.Invoke();
@@ -36,7 +34,6 @@ namespace Drag.Item
 
         private void OnGUI()
         { 
-            if (IsPointerOverAnyDraggable()) return; 
             GUI.skin = GUISkin;
             GUI.depth = sortingLayer;
             SelectionStart();
@@ -45,26 +42,24 @@ namespace Drag.Item
         }
         public void Update()
         { 
-          SelectionEnd();
+            SelectionEnd();
         }
         private void SelectionStart()
         {
             if (Input.GetMouseButtonDown(0))
-            { 
-                startPoint = Input.mousePosition;
-                canDrawFrame = true;
-                canSelect = false;
+            {
+                startPoint = Input.mousePosition; 
+                if (IsPointerOverAnyDraggable()) return; 
+                onSelectionStay = true;
                 OnResetSelectedItems?.Invoke(); 
             }
         }
         private void SelectionStay()
         {
-            if (Input.GetMouseButton(0) && canDrawFrame)
+            if (Input.GetMouseButton(0) && onSelectionStay)
             { 
                 endPoint = Input.mousePosition;
-                if (Vector2.Distance(startPoint, endPoint) < minDragDistance) return; 
-                if (OnGetHasHitPointerCursorOnUI.Invoke()) return; 
-                canSelect = true;
+                if (Vector2.Distance(startPoint, endPoint) < minDragDistance) return;   
                 screenSpaceRect = GetRectFrame(startPoint, endPoint);
                 DrawFrame(screenSpaceRect); 
             }
@@ -72,12 +67,11 @@ namespace Drag.Item
 
         private void SelectionEnd()
         {
-            if (Input.GetMouseButtonUp(0) && canDrawFrame && canSelect)
+            if (Input.GetMouseButtonUp(0))
             {
-                endPoint = Input.mousePosition;
-                canSelect = false;
-                canDrawFrame = false;
-                SelectionFrameFromScreen(screenSpaceRect); 
+                endPoint = Input.mousePosition; 
+                SelectionFrameFromScreen(screenSpaceRect);
+                onSelectionStay = false; 
             }
         }
         //Вычисляет корректный прямоугольник
@@ -114,7 +108,10 @@ namespace Drag.Item
                 //проверяет, пересекаются ли прямоугольники
                 if (screen.Overlaps(itemRect, true))
                 {
-                    OnAddSelectedItem?.Invoke(item); 
+                    item.SetInSelectionFrame();
+                    item.LineEnable();
+                    OnAddSelectedItem?.Invoke(item);
+                    screenSpaceRect = Rect.zero;
                 }
             }
         }
@@ -136,6 +133,12 @@ namespace Drag.Item
 
             return new Rect(x, y, width, height);
         }
+        private bool IsPointerOverAnyDraggable()
+        {
+            foreach (var hit in GetRaycastHitResults())
+                if (hit.gameObject.GetComponent<DraggableItem>()) return true;
+            return false;
+        }
         private List<RaycastResult> GetRaycastHitResults()
         {
             PointerEventData pointerData = new PointerEventData(EventSystem.current)
@@ -147,11 +150,8 @@ namespace Drag.Item
             EventSystem.current.RaycastAll(pointerData, hitResults);
             return hitResults;
         }
-        private bool IsPointerOverAnyDraggable()
-        {
-            foreach (var hit in GetRaycastHitResults())
-                if (hit.gameObject.GetComponent<DraggableItem>()) return true;
-            return false;
-        }
+
     }
 }
+
+ 
