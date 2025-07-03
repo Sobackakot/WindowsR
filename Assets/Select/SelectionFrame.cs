@@ -149,8 +149,7 @@ namespace Drag.Item
             List<RaycastResult> hitResults = new();
             EventSystem.current.RaycastAll(pointerData, hitResults);
             return hitResults;
-        }
-
+        } 
     }
 }
 
