@@ -65,7 +65,7 @@ namespace Drag.Item
             inSelectionFrame = true;
             LineEnable();
         }
-        public void ResetSelectionFrame()
+        public void ResetItem()
         {
             inSelectionFrame = false;
             LineDisable();

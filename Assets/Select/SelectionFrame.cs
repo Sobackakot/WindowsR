@@ -12,7 +12,7 @@ namespace Drag.Item
         public event Action OnResetSelectedItems;
 
 
-        SelectableRegistry registry;
+        RegistrySelectableItems registry;
         public GUISkin GUISkin; // GUI skin for the selection box.
         private Rect screenSpaceRect; // Rectangle representing the selection box. 
 
@@ -29,7 +29,7 @@ namespace Drag.Item
         }
         private void Awake()
         {
-            registry = GetComponent<SelectableRegistry>();
+            registry = GetComponent<RegistrySelectableItems>();
         }
 
         private void OnGUI()
@@ -102,7 +102,7 @@ namespace Drag.Item
 
         private void SelectionFrameFromScreen(Rect screen)
         {
-            foreach (var item in registry.itemFromScreen)
+            foreach (var item in registry.draggableItems)
             {
                 Rect itemRect = GetRectItem(item);
                 //провер€ет, пересекаютс€ ли пр€моугольники
